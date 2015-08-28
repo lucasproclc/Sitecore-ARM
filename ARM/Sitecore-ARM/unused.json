@@ -1,0 +1,82 @@
+﻿[
+    {
+        "storageProfile": {
+            "imageReference": {
+                "publisher": "MicrosoftSQLServer",
+                "offer": "SQL2014SP1-WS2012R2",
+                "sku": "Web",
+                "version": "latest"
+            }
+        },
+        "osProfile": {
+            "computerName": "sqliaas",
+            "adminUsername": "chgeuer",
+            "windowsConfiguration": {
+                "provisionVMAgent": true,
+                "enableAutomaticUpdates": true
+            },
+            "secrets": [ ]
+        }
+    },
+
+
+    {
+        "storageProfile": {
+            "imageReference": {
+                "publisher": "MicrosoftWindowsServer",
+                "offer": "WindowsServer",
+                "sku": "2012-R2-Datacenter",
+                "version": "latest"
+            },
+            "osProfile": {
+                "computerName": "proxy1",
+                "adminUsername": "chgeuer",
+                "windowsConfiguration": {
+                    "provisionVMAgent": true,
+                    "enableAutomaticUpdates": true
+                }
+            }
+        }
+    },
+
+    {
+        "type": "Microsoft.Sql/servers",
+        "name": "dornbracht",
+        "id": "/subscriptions/724467b5-bee4-484b-bf13-d6a5505d2b51/resourceGroups/sitecore/providers/Microsoft.Sql/servers/dornbracht",
+        "location": "West Europe",
+        "kind": "v12.0",
+        "properties": {
+            "fullyQualifiedDomainName": "dornbracht.database.windows.net",
+            "administratorLogin": "chgeuer",
+            "administratorLoginPassword": null,
+            "externalAdministratorLogin": null,
+            "externalAdministratorSid": null,
+            "version": "12.0"
+        }
+    },
+    {
+        "type": "Microsoft.Sql/servers/databases",
+        "name": "dornbracht",
+        "id": "/subscriptions/724467b5-bee4-484b-bf13-d6a5505d2b51/resourceGroups/sitecore/providers/Microsoft.Sql/servers/dornbracht/databases/dornbracht",
+        "location": "West Europe",
+        "kind": "v12.0,user",
+        "properties": {
+            "edition": "Premium",
+            "serviceLevelObjective": "P4",
+            "collation": "SQL_Latin1_General_CP1_CI_AS",
+            "maxSizeBytes": "536870912000",
+            "requestedServiceObjectiveName": null
+        }
+    },
+    {
+        "id": "/subscriptions/724467b5-bee4-484b-bf13-d6a5505d2b51/resourceGroups/sitecore/providers/Microsoft.Sql/servers/dornbracht/firewallRules/AllowAllWindowsAzureIps",
+        "name": "AllowAllWindowsAzureIps",
+        "type": "Microsoft.Sql/servers/firewallRules",
+        "location": "West Europe",
+        "kind": "v12.0",
+        "properties": {
+            "startIpAddress": "0.0.0.0",
+            "endIpAddress": "0.0.0.0"
+        }
+    }
+]

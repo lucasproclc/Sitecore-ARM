@@ -1,0 +1,13 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": { "value": "chgeuer" },
+        "adminPassword": { "value": "test123.-" },
+        "databaseUsername": { "value": "chgeuer" },
+        "databasePassword": { "value": "test123.-" },
+        "deploymentName": { "value": "p2p2" },
+        "dnsNameForPublicIP": { "value": "p2p2" },
+        "networkIPv4RangeFirstTwoBytes": { "value": "10.0" }
+    }
+}

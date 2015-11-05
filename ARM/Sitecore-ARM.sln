@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E05F478C-E
 		..\img\legacy.png = ..\img\legacy.png
 		..\img\new-iaas.png = ..\img\new-iaas.png
 		..\img\new-saas.png = ..\img\new-saas.png
+		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Global

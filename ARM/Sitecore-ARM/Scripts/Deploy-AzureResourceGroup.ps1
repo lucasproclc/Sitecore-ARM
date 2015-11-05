@@ -96,8 +96,8 @@ if ($UploadArtifacts)
 }
 
 # Create or update the resource group using the specified template file and template parameters file
-Switch-AzureMode AzureResourceManager
-New-AzureResourceGroup -Name $ResourceGroupName `
+
+New-AzureRmResourceGroup -Name $ResourceGroupName `
                        -Location $ResourceGroupLocation `
                        -TemplateFile $TemplateFile `
                        -TemplateParameterFile $TemplateParametersFile `

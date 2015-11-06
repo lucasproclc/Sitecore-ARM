@@ -337,6 +337,34 @@
             }
         },
         {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('dsc-', variables('suffix').web, '-', copyIndex())]",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[resourceGroup().location]",
+            "tags": { "displayName": "Web - Desired State Configuration" },
+            "copy": {
+                "name": "webNodeVMCopy",
+                "count": "[variables('instanceCount').web]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', concat(variables('suffix').web, '-', copyIndex()))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.8",
+                "settings": {
+                    "ModulesUrl": "https://github.com/chgeuer/Sitecore-ARM/raw/master/ARM/Sitecore-ARM/Templates/SitecoreWebsite.ps1.zip",
+                    "ConfigurationFunction": "SitecoreWebsite.ps1/SitecoreWebsite",
+                    "SasToken": "",
+                    "Properties": {
+                        "MachineName": "[concat(variables('suffix').web, '-', copyIndex())]"
+                    }
+                },
+                "protectedSettings": null
+            }
+        },
+        {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "[variables('apiVersion')]",
             "location": "[resourceGroup().location]",

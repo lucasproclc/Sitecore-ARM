@@ -8,6 +8,9 @@
         "databasePassword": { "value": "test123.-" },
         "deploymentName": { "value": "p2p2" },
         "dnsNameForPublicIP": { "value": "p2p2" },
-        "networkIPv4RangeFirstTwoBytes": { "value": "10.0" }
+        "networkIPv4RangeFirstTwoBytes": { "value": "10.0" },
+        "applicationGatewayCertPassword": {
+            "value": "test123.-"
+        }
     }
 }

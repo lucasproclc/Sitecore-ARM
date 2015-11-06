@@ -123,8 +123,14 @@
                 }
             },
             "vmStorageAccountContainerName": "vhds",
-            "web": { "size": "Standard_A1", "storage":  "Standard_LRS" },
-            "red": { "size": "Standard_A1", "storage":  "Standard_LRS" }
+            "web": {
+                "size": "Standard_A1",
+                "storage": "Standard_LRS"
+            },
+            "red": {
+                "size": "Standard_A1",
+                "storage": "Standard_LRS"
+            }
         },
         "instanceCount": {
             "web": 2
@@ -137,8 +143,11 @@
             "edition": "Premium",
             "requestedServiceObjectiveName": "P4",
             "collation": "SQL_Latin1_General_CP1_CI_AS",
-            "maxSizeBytes": "536870912000"
+            "maxSizeBytes": "536870912000",
+            "serverName":  "[concat(parameters('deploymentName'),'-','sql')]",
+            "databaseName":  "db"
         },
+        "databaseConnectionString": "[concat('Data Source=tcp:', concat(variables('sql').serverName, '.database.windows.net'), ',1433;Initial Catalog=', variables('sql').databaseName, ';User Id=', parameters('databaseUsername'), '@', variables('sql').serverName, ';Password=', parameters('databasePassword'), ';')]",
         "applicationGateway": {
             "name": "[concat(parameters('deploymentName'),'-application-gateway')]",
             "sku": "Standard_Medium",
@@ -167,22 +176,51 @@
                 "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPs').mainAddress)]"
             ],
             "properties": {
-                "sku": { "tier": "Standard", "name": "[variables('applicationGateway').sku]", "capacity": "[variables('applicationGateway').capacity]" },
+                "sku": {
+                    "tier": "Standard",
+                    "name": "[variables('applicationGateway').sku]",
+                    "capacity": "[variables('applicationGateway').capacity]"
+                },
                 "sslCertificates": [
-                    { "name": "appGatewaySslCert", "properties": { "data": "[parameters('applicationGatewayEncodedPfx')]", "password": "[parameters('applicationGatewayCertPassword')]" } }
+                    {
+                        "name": "appGatewaySslCert",
+                        "properties": {
+                            "data": "[parameters('applicationGatewayEncodedPfx')]",
+                            "password": "[parameters('applicationGatewayCertPassword')]"
+                        }
+                    }
                 ],
                 "gatewayIPConfigurations": [
-                    { "name": "appGatewayIpConfig", "properties": { "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnet').name), '/subnets/', variables('vnet').subnet.proxy.name)]" } } }
+                    {
+                        "name": "appGatewayIpConfig",
+                        "properties": { "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('vnet').name), '/subnets/', variables('vnet').subnet.proxy.name)]" } }
+                    }
                 ],
                 "frontendIPConfigurations": [
-                    { "name": "appGatewayFrontendIP", "properties": { "PublicIPAddress": { "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPs').mainAddress)]" } } }
+                    {
+                        "name": "appGatewayFrontendIP",
+                        "properties": { "PublicIPAddress": { "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPs').mainAddress)]" } }
+                    }
                 ],
                 "frontendPorts": [
-                    { "name": "appGatewayFrontendPort80", "properties": { "Port": 80 } },
-                    { "name": "appGatewayFrontendPort443", "properties": { "Port": 443 } }
+                    {
+                        "name": "appGatewayFrontendPort80",
+                        "properties": { "Port": 80 }
+                    },
+                    {
+                        "name": "appGatewayFrontendPort443",
+                        "properties": { "Port": 443 }
+                    }
                 ],
                 "backendHttpSettingsCollection": [
-                    { "name": "appGatewayBackendHttpSettings", "properties": { "Port": 80, "Protocol": "Http", "CookieBasedAffinity": "Enabled" } }
+                    {
+                        "name": "appGatewayBackendHttpSettings",
+                        "properties": {
+                            "Port": 80,
+                            "Protocol": "Http",
+                            "CookieBasedAffinity": "Enabled"
+                        }
+                    }
                 ],
                 "backendAddressPools": [
                     {
@@ -204,7 +242,7 @@
                         "name": "appGatewayHttpListener",
                         "properties": {
                             "FrontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/frontendIPConfigurations/', 'appGatewayFrontendIP')]" },
-                            "FrontendPort":            { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/frontendPorts/', 'appGatewayFrontendPort80')]" },
+                            "FrontendPort": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/frontendPorts/', 'appGatewayFrontendPort80')]" },
                             "Protocol": "Http"
                         }
                     },
@@ -212,9 +250,9 @@
                         "name": "appGatewayHttpsListener",
                         "properties": {
                             "Protocol": "Https",
-                            "SslCertificate":          { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/sslCertificates/', 'appGatewaySslCert')]" },
+                            "SslCertificate": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/sslCertificates/', 'appGatewaySslCert')]" },
                             "FrontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/frontendIPConfigurations/', 'appGatewayFrontendIP')]" },
-                            "FrontendPort":            { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/frontendPorts/', 'appGatewayFrontendPort443')]" }
+                            "FrontendPort": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/frontendPorts/', 'appGatewayFrontendPort443')]" }
                         }
                     }
                 ],
@@ -223,8 +261,8 @@
                         "Name": "ruleHttp",
                         "properties": {
                             "RuleType": "Basic",
-                            "httpListener":        { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/httpListeners/', 'appGatewayHttpListener')]" },
-                            "backendAddressPool":  { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/backendAddressPools/', 'appGatewayBackendPool')]" },
+                            "httpListener": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/httpListeners/', 'appGatewayHttpListener')]" },
+                            "backendAddressPool": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/backendAddressPools/', 'appGatewayBackendPool')]" },
                             "backendHttpSettings": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/backendHttpSettingsCollection/', 'appGatewayBackendHttpSettings')]" }
                         }
                     },
@@ -232,8 +270,8 @@
                         "Name": "ruleHttps",
                         "properties": {
                             "RuleType": "Basic",
-                            "httpListener":        { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/httpListeners/', 'appGatewayHttpsListener')]" },
-                            "backendAddressPool":  { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/backendAddressPools/', 'appGatewayBackendPool')]" },
+                            "httpListener": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/httpListeners/', 'appGatewayHttpsListener')]" },
+                            "backendAddressPool": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/backendAddressPools/', 'appGatewayBackendPool')]" },
                             "backendHttpSettings": { "id": "[concat(resourceId('Microsoft.Network/applicationGateways', variables('applicationGateway').name), '/backendHttpSettingsCollection/', 'appGatewayBackendHttpSettings')]" }
                         }
                     }
@@ -338,7 +376,7 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat('dsc-', variables('suffix').web, '-', copyIndex())]",
+            "name": "[concat(concat(variables('suffix').web, '-', copyIndex()), '/', 'dsc')]",
             "apiVersion": "[variables('apiVersion')]",
             "location": "[resourceGroup().location]",
             "tags": { "displayName": "Web - Desired State Configuration" },
@@ -355,13 +393,17 @@
                 "typeHandlerVersion": "2.8",
                 "settings": {
                     "ModulesUrl": "https://github.com/chgeuer/Sitecore-ARM/raw/master/ARM/Sitecore-ARM/Templates/SitecoreWebsite.ps1.zip",
-                    "ConfigurationFunction": "SitecoreWebsite.ps1/SitecoreWebsite",
+                    "ConfigurationFunction": "SitecoreWebsite.ps1\\SitecoreWebsite",
                     "SasToken": "",
                     "Properties": {
                         "MachineName": "[concat(variables('suffix').web, '-', copyIndex())]"
                     }
                 },
-                "protectedSettings": null
+                "protectedSettings": {
+                    "Items": {
+                        "SqlConnectionString": "[variables('databaseConnectionString')]"
+                    }
+                }
             }
         },
         {
@@ -685,7 +727,7 @@
                 {
                     "type": "databases",
                     "apiVersion": "[variables('apiVersion')]",
-                    "name": "db",
+                    "name": "[variables('sql').databaseName]",
                     "tags": { "displayName": "Database" },
                     "location": "[resourceGroup().location]",
                     "dependsOn": [

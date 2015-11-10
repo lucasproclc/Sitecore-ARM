@@ -105,7 +105,8 @@
             }
         },
         "publicIPs": {
-            "mainAddress": "mainAddress"
+            "mainAddress": "mainAddress",
+            "nlbAddress": "nlbAddress"
         },
         "vm": {
             "images": {
@@ -144,8 +145,8 @@
             "requestedServiceObjectiveName": "P4",
             "collation": "SQL_Latin1_General_CP1_CI_AS",
             "maxSizeBytes": "536870912000",
-            "serverName":  "[concat(parameters('deploymentName'),'-','sql')]",
-            "databaseName":  "db"
+            "serverName": "[concat(parameters('deploymentName'),'-','sql')]",
+            "databaseName": "db"
         },
         "databaseConnectionString": "[concat('Data Source=tcp:', concat(variables('sql').serverName, '.database.windows.net'), ',1433;Initial Catalog=', variables('sql').databaseName, ';User Id=', parameters('databaseUsername'), '@', variables('sql').serverName, ';Password=', parameters('databasePassword'), ';')]",
         "applicationGateway": {
@@ -163,6 +164,60 @@
             "tags": { "displayName": "Proxy - Public IP" },
             "properties": {
                 "publicIPAllocationMethod": "Dynamic"
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[resourceGroup().location]",
+            "name": "[variables('publicIPs').nlbAddress]",
+            "tags": { "displayName": "RDP Endpoints - Public IP" },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+            }
+        },
+        {
+            "type": "Microsoft.Network/loadBalancers",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "[resourceGroup().location]",
+            "name": "[concat(parameters('deploymentName'), '-nlb')]",
+            "tags": { "displayName": "Load Balancer" },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnet').name)]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPs').nlbAddress)]"
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "loadBalancerFrontEnd",
+                        "properties": {
+                            "publicIPAddress": { "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPs').nlbAddress)]" }
+                        }
+                    }
+                ],
+                "backendAddressPools": [ { "name": "loadBalancerBackEnd" } ],
+                "inboundNatRules": [
+                    {
+                        "name": "RDP-0",
+                        "properties": {
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat(parameters('deploymentName'),'-nlb')),'/frontendIPConfigurations/', 'loadBalancerFrontEnd')]" },
+                            "protocol": "tcp",
+                            "frontendPort": 3389,
+                            "backendPort": 3389,
+                            "enableFloatingIP": false
+                        }
+                    },
+                    {
+                        "name": "RDP-1",
+                        "properties": {
+                            "frontendIPConfiguration": { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat(parameters('deploymentName'),'-nlb')),'/frontendIPConfigurations/', 'loadBalancerFrontEnd')]" },
+                            "protocol": "tcp",
+                            "frontendPort": 3390,
+                            "backendPort": 3389,
+                            "enableFloatingIP": false
+                        }
+                    }
+                ]
             }
         },
         {
@@ -289,7 +344,8 @@
                 "count": "[variables('instanceCount').web]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Network/virtualNetworks/', variables('vnet').name)]"
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnet').name)]",
+                "[concat('Microsoft.Network/loadBalancers/', concat(parameters('deploymentName'), '-nlb'))]"
             ],
             "properties": {
                 "ipConfigurations": [
@@ -298,9 +354,9 @@
                         "properties": {
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[concat(variables('addressPrefix').web, '.', copyIndex(10))]",
-                            "subnet": {
-                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnet').name), '/subnets/', variables('vnet').subnet.web.name)]"
-                            }
+                            "subnet": { "id": "[concat(resourceId('Microsoft.Network/virtualNetworks',variables('vnet').name), '/subnets/', variables('vnet').subnet.web.name)]" },
+                            "loadBalancerBackendAddressPools": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat(parameters('deploymentName'),'-nlb')), '/backendAddressPools/', 'loadBalancerBackend')]" } ],
+                            "loadBalancerInboundNatRules": [ { "id": "[concat(resourceId('Microsoft.Network/loadBalancers', concat(parameters('deploymentName'),'-nlb')), '/inboundNatRules/', concat('RDP-', copyIndex()))]" } ]
                         }
                     }
                 ]
@@ -393,6 +449,11 @@
                 "typeHandlerVersion": "2.8",
                 "settings": {
                     "ModulesUrl": "https://github.com/chgeuer/Sitecore-ARM/raw/master/ARM/Sitecore-ARM/Templates/SitecoreWebsite.ps1.zip",
+                    "AdvancedOptions": {
+                        "DownloadMappings": {
+                            "WMF_4.0-Windows_6.1-x64": "https://download.microsoft.com/download/3/D/6/3D61D262-8549-4769-A660-230B67E15B25/Windows6.1-KB2819745-x64-MultiPkg.msu"
+                        }
+                    },
                     "ConfigurationFunction": "SitecoreWebsite.ps1\\SitecoreWebsite",
                     "SasToken": "",
                     "Properties": {
@@ -556,6 +617,20 @@
                             "sourcePortRange": "*",
                             "destinationAddressPrefix": "[variables('addressrange').web]",
                             "destinationPortRange": "80"
+                        }
+                    },
+                    {
+                        "name": "rdp-to-web",
+                        "properties": {
+                            "priority": 102,
+                            "description": "Allow TCP/3389 Inbound (Internet->Web Server)",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "protocol": "Tcp",
+                            "sourceAddressPrefix": "Internet",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "[variables('addressrange').web]",
+                            "destinationPortRange": "3389"
                         }
                     },
                     {

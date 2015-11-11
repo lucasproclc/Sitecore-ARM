@@ -7,12 +7,11 @@ Param(
   [string] $StorageAccountName,
   [string] $StorageAccountResourceGroupName, 
   [string] $StorageContainerName = $ResourceGroupName.ToLowerInvariant() + '-stageartifacts',
-  [string] $TemplateFile = '..\Templates\LinuxVirtualMachine.json',
-  [string] $TemplateParametersFile = '..\Templates\LinuxVirtualMachine.param.dev.json',
+  [string] $TemplateFile = '..\Templates\Sitecore-ARM.json',
+  [string] $TemplateParametersFile = '..\Templates\Sitecore-ARM.param.dev.json',
   [string] $ArtifactStagingDirectory = '..\bin\Debug\staging',
   [string] $AzCopyPath = '..\Tools\AzCopy.exe'
 )
-
 
 Import-Module Azure -ErrorAction SilentlyContinue
 

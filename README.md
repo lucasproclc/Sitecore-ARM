@@ -15,18 +15,20 @@
 
 
 
+# DSC
 
+- Check if one can use https://github.com/iainbrighton/cRemoteFile to download and install GIT locally
+- DSC Resource Kit: http://blogs.technet.com/b/heyscriptingguy/archive/2014/10/13/use-powershell-to-download-and-install-dsc-resource-kit.aspx
+- [Build Custom Windows PowerShell Desired State Configuration Resources](https://technet.microsoft.com/en-us/library/dn249927.aspx)
+- [Writing a Custom DSC Resource](https://www.penflip.com/powershellorg/the-dsc-book/blob/master/writing-a-custom-dsc-resource.txt)
+- [Using PowerShell Desired State Configuration to check for and install applications](https://justingalston.wordpress.com/2014/06/11/using-powershell-desired-state-configuration-to-check-for-and-install-applications/)
 
 # GIT Deploy
-
-
-
 
 ```
 echo "Install Git"
 powershell -NoProfile -ExecutionPolicy Unrestricted -Command "(New-Object System.Net.WebClient).DownloadFile('https://github.com/git-for-windows/git/releases/download/v2.6.2.windows.1/Git-2.6.2-64-bit.exe', 'Git-2.6.2-64-bit.exe')" && .\Git-2.6.2-64-bit.exe /VERYSILENT /SP- /SUPPRESSMSGBOXES /NORESTART /LOG="git-install.log" 
 ```
-
 
 mkdir SARM
 cd SARM
